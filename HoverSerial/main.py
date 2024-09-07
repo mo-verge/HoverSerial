@@ -6,9 +6,9 @@ import time
 def thread_send_command():
 
     #Constantes
-    SPEED_MAX_TEST = 300  # [-] Maximum speed for testing
+    SPEED_MAX_TEST = 30 # [-] Maximum speed for testing
     SPEED_STEP = 2  # [-] Speed step
-    TIME_SEND = 0.1  # [s] Sending time interval
+    TIME_SEND = 0.5  # [s] Sending time interval
 
     #Local variables
     iStep = SPEED_STEP
@@ -25,7 +25,8 @@ def thread_send_command():
         startTime = time.time()
 
         # Calculate test command speed
-        speed = SPEED_MAX_TEST-2*abs(iTest)
+        speed = SPEED_MAX_TEST
+        # speed = SPEED_MAX_TEST-2*abs(iTest)
 
         # Send commands
         hover_serial.send_command(steer, speed)
@@ -45,14 +46,14 @@ def thread_receive_feedback():
 
         if feedback == None:
             continue
-        
+
         print('Receiving:\t', feedback)
 
 
 if __name__ == "__main__":
 
     SERIAL_PORT = '/dev/serial0'
-    SERIAL_BAUD = 38400
+    SERIAL_BAUD = 115200
     hover_serial = Hoverboard_serial(SERIAL_PORT, SERIAL_BAUD)
 
     try:

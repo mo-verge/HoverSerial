@@ -1,13 +1,13 @@
 import serial # to communicate with the hoverboard
 
 class Hoverboard_serial:
-    
+
     def __init__(self,adresse,baud):
         self.uart = serial.Serial(adresse, baud, timeout=1)
         self.startBytes = bytes.fromhex('ABCD')[::-1] # lower byte first
         self.incomingBytesPrev = bytes()
-        
-    
+
+
     def send_command(self,steer, speed):
         '''
         Send a bytearray for controlling the hoverboard
@@ -26,12 +26,12 @@ class Hoverboard_serial:
         checksumBytes = bytes(a^b^c for (a, b, c) in zip(self.startBytes, steerBytes, speedBytes))
 
         command = self.startBytes+steerBytes+speedBytes+checksumBytes
-        
+
         self.uart.write(command)
-        
+
     def receive_feedback(self):
         '''
-        receive a bytearray to the hoverboard 
+        receive a bytearray to the hoverboard
         return: bytearray convert to dictionnary
 
         bytearray :
@@ -49,27 +49,27 @@ class Hoverboard_serial:
         # Read incomingByte and Construct the start frame
         incomingByte = self.uart.read()
         bufStartFrame = self.incomingBytesPrev+incomingByte
-        
+
         # Control bufStartFrame is startBytes
         if bufStartFrame != self.startBytes:
             self.incomingBytesPrev=incomingByte
             return
-        
+
         else:
             feedback = {"cmd1":0, "cmd2":0, "speedR_meas":0, "speedL_meas":0, "batVoltage":0, "boardTemp":0, "cmdLed":0}
             checksumBytesCalculate=bufStartFrame
-    
+
             for key,value in feedback.items():
-                
+
                 # Read 2 Next Bytes
                 elementBytes=self.uart.read(2)
-                
+
                 # Convert 2 Bytes to Integer in feedback dictionnary
                 feedback[key]=int.from_bytes(elementBytes, byteorder='little',signed=True)
-                
+
                 # Calculate checksumBytes
                 checksumBytesCalculate = bytes(a^b for (a, b) in zip(checksumBytesCalculate, elementBytes))
-                
+
             # Control checksumBytes Read is checksumBytes Calculate
             checksumBytesRead=self.uart.read(2)
             if checksumBytesCalculate == checksumBytesRead:
@@ -77,8 +77,8 @@ class Hoverboard_serial:
                 return feedback
             else:
                 print("checksumBytes False")
-            
+
             return
-            
+
     def close(self):
         self.uart.close()
